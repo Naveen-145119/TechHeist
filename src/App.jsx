@@ -1,59 +1,53 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import './App.css';
+import { account } from './appwriteConfig'; // Import the Appwrite account object
 
 // Components
-import Navbar from './components/Navbar'
-import HomePage from './components/HomePage'
-import EventsPage from './components/EventsPage'
-import EventDetailPage from './components/EventDetailPage'
-import LoginPage from './components/LoginPage'
-import RegisterPage from './components/RegisterPage'
-import EventRegistrationPage from './components/EventRegistrationPage'
+import Navbar from './components/Navbar';
+import HomePage from './components/HomePage';
+import EventsPage from './components/EventsPage';
+import EventDetailPage from './components/EventDetailPage';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import EventRegistrationPage from './components/EventRegistrationPage';
 
 function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // This hook now correctly uses Appwrite to check for an active session
   useEffect(() => {
-    // Check for existing user session
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('techheist_token')
-        if (token) {
-          // Validate token with backend
-          const response = await fetch('http://localhost:5000/api/auth/profile', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-          if (response.ok) {
-            const userData = await response.json()
-            setUser(userData.user)
-          } else {
-            localStorage.removeItem('techheist_token')
-          }
-        }
+        const currentUser = await account.get();
+        setUser(currentUser);
       } catch (error) {
-        console.error('Auth check failed:', error)
-        localStorage.removeItem('techheist_token')
+        // If no session is found, Appwrite throws an error.
+        // We can safely ignore it and assume the user is not logged in.
+        setUser(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
+    };
+
+    checkAuth();
+  }, []);
+
+  // This function is passed to the LoginPage and RegisterPage
+  const login = (userData) => {
+    setUser(userData);
+  };
+
+  // The logout function now correctly uses the Appwrite SDK
+  const logout = async () => {
+    try {
+      await account.deleteSession('current');
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
-
-    checkAuth()
-  }, [])
-
-  const login = (userData, token) => {
-    setUser(userData)
-    localStorage.setItem('techheist_token', token)
-  }
-
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem('techheist_token')
-  }
+  };
 
   if (loading) {
     return (
@@ -63,7 +57,7 @@ function App() {
           <p className="text-foreground text-lg">Loading TECHHEIST...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -84,8 +78,7 @@ function App() {
         </Routes>
       </div>
     </Router>
-  )
+  );
 }
 
-export default App
-
+export default App;
