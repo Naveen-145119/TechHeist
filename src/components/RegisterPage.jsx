@@ -1,64 +1,52 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Input } from './ui/input'
-import { Label } from './ui/label'
-import techheistLogo from '../assets/techheist-logo.png'
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import techheistLogo from '../assets/techheist-logo.png';
+import { account } from '../appwriteConfig'; // Import Appwrite account
 
 const RegisterPage = ({ login }) => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phoneNumber: '',
-    collegeName: '',
-    password: '',
-    confirmPassword: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  // The other form fields are not needed by Appwrite for basic registration
+  // but you can add them back if you store them in an Appwrite database later.
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          collegeName: formData.collegeName,
-          password: formData.password
-        })
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        login(data.user, data.token)
-        navigate('/')
-      } else {
-        setError(data.message || 'Registration failed')
-      }
-    } catch (error) {
-      setError('Network error. Please try again.')
+      // Correct: Use Appwrite SDK to create a user account
+      await account.create('unique()', email, password, fullName);
+      
+      // Automatically log the user in after successful registration
+      await account.createEmailSession(email, password);
+      const userProfile = await account.get();
+      
+      login(userProfile);
+      navigate('/'); // Redirect to homepage
+    } catch (err) {
+      // Catch errors from Appwrite
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center py-20 px-4">
@@ -94,8 +82,8 @@ const RegisterPage = ({ login }) => {
                   id="fullName"
                   type="text"
                   placeholder="John Doe"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
                 />
               </div>
@@ -106,35 +94,14 @@ const RegisterPage = ({ login }) => {
                   id="email"
                   type="email"
                   placeholder="your.email@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="collegeName">College Name</Label>
-                <Input
-                  id="collegeName"
-                  type="text"
-                  placeholder="Your College Name"
-                  value={formData.collegeName}
-                  onChange={(e) => setFormData({...formData, collegeName: e.target.value})}
-                  required
-                />
-              </div>
+
+              {/* Note: Phone Number and College Name are not part of Appwrite's default user object.
+                  You would need to store these in a separate database collection if needed. */}
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -142,8 +109,8 @@ const RegisterPage = ({ login }) => {
                   id="password"
                   type="password"
                   placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
@@ -154,8 +121,8 @@ const RegisterPage = ({ login }) => {
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
@@ -184,4 +151,4 @@ const RegisterPage = ({ login }) => {
   )
 }
 
-export default RegisterPage
+export default RegisterPage;
