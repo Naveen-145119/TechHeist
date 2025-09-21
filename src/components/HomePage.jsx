@@ -1,89 +1,46 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { ArrowDown, Calendar, Users, Trophy, ChevronRight } from 'lucide-react'
-import techheistLogo from '../assets/techheist-logo.png'
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { ArrowDown, Calendar, Users, Trophy, ChevronRight } from 'lucide-react';
+import techheistLogo from '../assets/techheist-logo.png';
+import { databases, eventsTableId, databaseId } from '../appwriteConfig'; // Import Appwrite config
+import { Query } from 'appwrite'; // Import Query for filtering
 
 const HomePage = () => {
-  const [events, setEvents] = useState([])
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    // Fetch featured events
+    // Correctly fetch events from Appwrite
     const fetchEvents = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/events?featured=true&limit=6')
-        if (response.ok) {
-          const data = await response.json()
-          setEvents(data.events || [])
-        }
+        // We will fetch all events and filter them on the client-side for this example.
+        // For larger apps, you might query for a "featured" attribute.
+        const response = await databases.listDocuments(
+          databaseId,
+          eventsTableId,
+          [Query.limit(6)] // Get the 6 most recent events
+        );
+        setEvents(response.documents || []);
       } catch (error) {
-        console.error('Failed to fetch events:', error)
-        // Mock data for development
-        setEvents([
-          {
-            _id: '1',
-            eventName: 'Hackathon Supreme',
-            description: 'The ultimate coding challenge',
-            category: 'IT',
-            date: '2024-03-15',
-            maxTeamSize: 4
-          },
-          {
-            _id: '2',
-            eventName: 'AI Innovation Challenge',
-            description: 'Build the future with AI',
-            category: 'IT',
-            date: '2024-03-16',
-            maxTeamSize: 3
-          },
-          {
-            _id: '3',
-            eventName: 'Cyber Security CTF',
-            description: 'Capture the flag competition',
-            category: 'IT',
-            date: '2024-03-17',
-            maxTeamSize: 2
-          },
-          {
-            _id: '4',
-            eventName: 'Tech Quiz',
-            description: 'Test your tech knowledge',
-            category: 'Non-IT',
-            date: '2024-03-18',
-            maxTeamSize: 2
-          },
-          {
-            _id: '5',
-            eventName: 'Gaming Tournament',
-            description: 'Ultimate gaming showdown',
-            category: 'Non-IT',
-            date: '2024-03-19',
-            maxTeamSize: 1
-          },
-          {
-            _id: '6',
-            eventName: 'Design Challenge',
-            description: 'Creative design competition',
-            category: 'Non-IT',
-            date: '2024-03-20',
-            maxTeamSize: 2
-          }
-        ])
+        console.error('Failed to fetch events:', error);
+        // Optional: You can keep mock data here for fallback if you want
+        setEvents([]); 
       }
-    }
+    };
 
-    fetchEvents()
-  }, [])
+    fetchEvents();
+  }, []);
 
   const scrollToEvents = () => {
     document.getElementById('events-section').scrollIntoView({ 
       behavior: 'smooth' 
-    })
-  }
+    });
+  };
 
-  const itEvents = events.filter(event => event.category === 'IT')
-  const nonItEvents = events.filter(event => event.category === 'Non-IT')
+  // Use the correct properties from the Appwrite document (`category`, `name`, etc.)
+  const itEvents = events.filter(event => event.category === 'IT');
+  const nonItEvents = events.filter(event => event.category === 'Non-IT');
 
   return (
     <div className="min-h-screen">
@@ -166,9 +123,9 @@ const HomePage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {itEvents.map((event) => (
-                <Card key={event._id} className="event-card bg-card border-border hover:border-primary/50 transition-all duration-300">
+                <Card key={event.$id} className="event-card bg-card border-border hover:border-primary/50 transition-all duration-300">
                   <CardHeader>
-                    <CardTitle className="text-foreground">{event.eventName}</CardTitle>
+                    <CardTitle className="text-foreground">{event.name}</CardTitle>
                     <CardDescription className="text-muted-foreground">
                       {event.description}
                     </CardDescription>
@@ -181,10 +138,10 @@ const HomePage = () => {
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Users className="w-4 h-4" />
-                        <span>Team of {event.maxTeamSize}</span>
+                        <span>Team of {event.maxTeamSize || 'any size'}</span>
                       </div>
                     </div>
-                    <Link to={`/event/${event._id}`}>
+                    <Link to={`/event/${event.$id}`}>
                       <Button className="w-full btn-primary">
                         Learn More
                       </Button>
@@ -212,9 +169,9 @@ const HomePage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {nonItEvents.map((event) => (
-                <Card key={event._id} className="event-card bg-card border-border hover:border-primary/50 transition-all duration-300">
+                <Card key={event.$id} className="event-card bg-card border-border hover:border-primary/50 transition-all duration-300">
                   <CardHeader>
-                    <CardTitle className="text-foreground">{event.eventName}</CardTitle>
+                    <CardTitle className="text-foreground">{event.name}</CardTitle>
                     <CardDescription className="text-muted-foreground">
                       {event.description}
                     </CardDescription>
@@ -227,10 +184,10 @@ const HomePage = () => {
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <Users className="w-4 h-4" />
-                        <span>Team of {event.maxTeamSize}</span>
+                        <span>Team of {event.maxTeamSize || 'any size'}</span>
                       </div>
                     </div>
-                    <Link to={`/event/${event._id}`}>
+                    <Link to={`/event/${event.$id}`}>
                       <Button className="w-full btn-primary">
                         Learn More
                       </Button>
@@ -255,5 +212,4 @@ const HomePage = () => {
   )
 }
 
-export default HomePage
-
+export default HomePage;
