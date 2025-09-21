@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../App.css';
-import '../user-uploads/style.css';
+import '../style.css';
 
 const LoginPage = ({ login }) => {
   const [email, setEmail] = useState('');

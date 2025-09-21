@@ -1,6 +1,6 @@
 import React from 'react';
 import '../App.css';
-import '../user-uploads/style.css';
+import '../style.css';
 
 // Sample events data (to be replaced with Appwrite integration)
 const eventsData = {

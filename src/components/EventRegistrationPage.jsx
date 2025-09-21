@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import '../App.css';
-import '../user-uploads/style.css';
+import '../style.css';
 
 const EventRegistrationPage = ({ user }) => {
   const { eventId } = useParams();
