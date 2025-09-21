@@ -7,7 +7,6 @@ import techheistLogo from '../assets/techheist-logo.png'
 
 const HomePage = () => {
   const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Fetch featured events
@@ -71,8 +70,6 @@ const HomePage = () => {
             maxTeamSize: 2
           }
         ])
-      } finally {
-        setLoading(false)
       }
     }
 
