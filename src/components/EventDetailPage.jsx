@@ -3,37 +3,6 @@ import { useParams } from 'react-router-dom';
 import '../App.css';
 import '../style.css';
 
-// Sample events data (to be replaced with Appwrite integration)
-const eventsData = {
-  hack24: {
-    name: '24-Hour Hackathon',
-    description: 'Build innovative solutions in 24 hours with your team',
-    date: '2025-10-15',
-    time: '09:00 AM',
-    venue: 'Computer Lab A',
-    entryFee: 200,
-    maxTeamSize: 4,
-    minTeamSize: 2,
-    whatsappLink: 'https://wa.me/1234567890',
-    prizes: '₹25,000 for winners',
-    contact: 'John Doe (+91-1234567890)',
-  },
-  codewar: {
-    name: 'Code War',
-    description: 'Competitive programming challenge for coding ninjas',
-    date: '2025-10-16',
-    time: '02:00 PM',
-    venue: 'Auditorium',
-    entryFee: 150,
-    maxTeamSize: 1,
-    minTeamSize: 1,
-    whatsappLink: 'https://wa.me/1234567890',
-    prizes: '₹15,000 for top coders',
-    contact: 'Jane Smith (+91-1234567890)',
-  },
-  // ...more events
-};
-
 const EventDetailPage = ({ user }) => {
   const { eventId } = useParams();
   const [event, setEvent] = React.useState(null);
