@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Menu, X, User, LogOut } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Menu, X, User, LogOut } from '../ui/icons'
 import techheistLogo from '../assets/techheist-logo.png'
 
 const Navbar = ({ user, logout }) => {

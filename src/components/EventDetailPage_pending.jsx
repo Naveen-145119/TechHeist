@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Badge } from './ui/badge'
-import { Calendar, Users, MapPin, Trophy, MessageCircle, ArrowLeft } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Badge } from '../ui/badge'
+import { Calendar, Users, MapPin, Trophy, MessageCircle, ArrowLeft } from '../ui/icons'
 
 const EventDetailPage = ({ user }) => {
   const { eventId } = useParams()
