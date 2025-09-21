@@ -1,48 +1,38 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Input } from './ui/input'
-import { Label } from './ui/label'
-import techheistLogo from '../assets/techheist-logo.png'
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import techheistLogo from '../assets/techheist-logo.png';
+import { account } from '../appwriteConfig'; // Import Appwrite account
 
 const LoginPage = ({ login }) => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        login(data.user, data.token)
-        navigate('/')
-      } else {
-        setError(data.message || 'Login failed')
-      }
-    } catch (error) {
-      setError('Network error. Please try again.')
+      // Correct: Use Appwrite SDK for login
+      await account.createEmailSession(email, password);
+      const userProfile = await account.get();
+      
+      login(userProfile);
+      navigate('/'); // Redirect on successful login
+    } catch (err) {
+      // Catch errors from Appwrite
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center py-20 px-4">
@@ -78,8 +68,8 @@ const LoginPage = ({ login }) => {
                   id="email"
                   type="email"
                   placeholder="your.email@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -90,8 +80,8 @@ const LoginPage = ({ login }) => {
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
@@ -120,4 +110,4 @@ const LoginPage = ({ login }) => {
   )
 }
 
-export default LoginPage
+export default LoginPage;
