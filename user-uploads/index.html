@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TECHHEIST - College IT Fest</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-text">TECHHEIST</span>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="#home" class="nav-link">HOME</a>
+                <a href="#events" class="nav-link">EVENTS</a>
+                <button class="btn btn--outline nav-auth-btn" id="login-btn">LOGIN</button>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <div class="college-logo">
+                <div class="logo-placeholder">
+                    <span>COLLEGE</span>
+                    <span>LOGO</span>
+                </div>
+            </div>
+            <h1 class="hero-title">TECHHEIST</h1>
+            <p class="hero-subtitle">WHERE CODE MEETS HEIST</p>
+            <div class="hero-buttons">
+                <button class="btn btn--primary btn--lg" id="explore-btn">EXPLORE</button>
+                <button class="btn btn--outline btn--lg" id="register-hero-btn">REGISTER</button>
+            </div>
+        </div>
+        <div class="hero-overlay"></div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events" class="events-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">EVENTS</h2>
+                <p class="section-subtitle">Choose your battleground</p>
+            </div>
+            
+            <!-- Event Categories -->
+            <div class="event-categories">
+                <button class="category-btn active" data-category="all">ALL EVENTS</button>
+                <button class="category-btn" data-category="it">IT EVENTS</button>
+                <button class="category-btn" data-category="non-it">NON-IT EVENTS</button>
+            </div>
+
+            <!-- IT Events -->
+            <div class="events-grid" id="it-events">
+                <h3 class="events-category-title">IT EVENTS</h3>
+                <div class="grid" id="it-events-grid">
+                    <!-- IT Events will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Non-IT Events -->
+            <div class="events-grid" id="non-it-events">
+                <h3 class="events-category-title">NON-IT EVENTS</h3>
+                <div class="grid" id="non-it-events-grid">
+                    <!-- Non-IT Events will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Auth Modal -->
+    <div class="modal hidden" id="auth-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="auth-close">&times;</button>
+            
+            <!-- Login Form -->
+            <div class="auth-form" id="login-form">
+                <h2>LOGIN</h2>
+                <form id="login-form-element">
+                    <div class="form-group">
+                        <input type="email" class="form-control" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">LOGIN</button>
+                </form>
+                <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Register here</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="register-form">
+                <h2>REGISTER</h2>
+                <form id="register-form-element">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" class="form-control" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="tel" class="form-control" placeholder="Phone Number" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full-width">REGISTER</button>
+                </form>
+                <p class="auth-switch">Already have an account? <a href="#" id="show-login">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Registration Modal -->
+    <div class="modal hidden" id="registration-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="registration-close">&times;</button>
+            
+            <!-- Step 1: Personal Details -->
+            <div class="registration-step" id="step-1">
+                <div class="step-header">
+                    <h2>EVENT REGISTRATION</h2>
+                    <div class="step-indicator">
+                        <span class="step active">1</span>
+                        <span class="step">2</span>
+                        <span class="step">3</span>
+                    </div>
+                </div>
+                
+                <div class="event-info" id="selected-event-info">
+                    <!-- Event info will be populated by JS -->
+                </div>
+
+                <form id="personal-details-form">
+                    <div class="form-group">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" name="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-control" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">College Name *</label>
+                        <input type="text" class="form-control" name="college" required>
+                    </div>
+                    <button type="button" class="btn btn--primary" id="next-to-step-2">NEXT</button>
+                </form>
+            </div>
+
+            <!-- Step 2: Team Details -->
+            <div class="registration-step hidden" id="step-2">
+                <div class="step-header">
+                    <h2>TEAM DETAILS</h2>
+                    <div class="step-indicator">
+                        <span class="step completed">1</span>
+                        <span class="step active">2</span>
+                        <span class="step">3</span>
+                    </div>
+                </div>
+
+                <div class="team-section">
+                    <div class="team-info">
+                        <p id="team-requirements">Team size: 1-4 members</p>
+                        <p>Current team size: <span id="current-team-size">1</span></p>
+                    </div>
+                    
+                    <div id="team-members">
+                        <div class="team-member">
+                            <h4>Team Leader (You)</h4>
+                            <div class="member-details" id="leader-details">
+                                <!-- Leader details will be populated -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="add-member-section" id="add-member-section">
+                        <button type="button" class="btn btn--outline" id="add-member-btn">+ ADD TEAM MEMBER</button>
+                    </div>
+                </div>
+
+                <div class="step-buttons">
+                    <button type="button" class="btn btn--outline" id="back-to-step-1">BACK</button>
+                    <button type="button" class="btn btn--primary" id="next-to-step-3">NEXT</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Payment Summary -->
+            <div class="registration-step hidden" id="step-3">
+                <div class="step-header">
+                    <h2>PAYMENT SUMMARY</h2>
+                    <div class="step-indicator">
+                        <span class="step completed">1</span>
+                        <span class="step completed">2</span>
+                        <span class="step active">3</span>
+                    </div>
+                </div>
+
+                <div class="payment-summary">
+                    <div class="summary-card">
+                        <h3>Registration Summary</h3>
+                        <div class="summary-details" id="summary-details">
+                            <!-- Summary will be populated by JS -->
+                        </div>
+                        <div class="total-amount">
+                            <strong>Total Amount: ₹<span id="total-amount">0</span></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-buttons">
+                    <button type="button" class="btn btn--outline" id="back-to-step-2">BACK</button>
+                    <button type="button" class="btn btn--primary" id="pay-now-btn">PAY NOW</button>
+                </div>
+            </div>
+
+            <!-- Payment Success -->
+            <div class="registration-step hidden" id="payment-success">
+                <div class="success-content">
+                    <div class="success-icon">✓</div>
+                    <h2>REGISTRATION SUCCESSFUL!</h2>
+                    <p>You have successfully registered for the event.</p>
+                    <p>Registration ID: <strong id="registration-id"></strong></p>
+                    <button type="button" class="btn btn--primary" id="close-success">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Status -->
+    <div class="user-status hidden" id="user-status">
+        <span>Welcome, <span id="user-name"></span></span>
+        <button class="btn btn--outline btn--sm" id="logout-btn">LOGOUT</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
