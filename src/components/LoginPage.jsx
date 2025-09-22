@@ -21,7 +21,7 @@ const LoginPage = ({ login }) => {
 
     try {
       // Correct: Use Appwrite SDK for login
-      await account.createEmailSession(email, password);
+     await account.createEmailPasswordSession(email, password);
       const userProfile = await account.get();
       
       login(userProfile);
