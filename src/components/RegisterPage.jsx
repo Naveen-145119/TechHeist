@@ -85,6 +85,7 @@ const RegisterPage = ({ login }) => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  className="h-12"
                 />
               </div>
               
@@ -97,6 +98,7 @@ const RegisterPage = ({ login }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-12"
                 />
               </div>
 
@@ -112,6 +114,7 @@ const RegisterPage = ({ login }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-12"
                 />
               </div>
               
@@ -124,6 +127,7 @@ const RegisterPage = ({ login }) => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  className="h-12"
                 />
               </div>
 

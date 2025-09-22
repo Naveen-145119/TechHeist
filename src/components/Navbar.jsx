@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Menu, X, User, LogOut } from 'lucide-react'
-import techheistLogo from '../assets/techheist-logo.png'
 
 const Navbar = ({ user, logout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -25,15 +24,6 @@ const Navbar = ({ user, logout }) => {
         backgroundSize: '4px 4px'
       }}
     >
-      {/* Logo */}
-      <Link to="/" className="flex items-center gap-2">
-        <img 
-          src={techheistLogo} 
-          alt="TECHHEIST Logo" 
-          className="w-7 h-7 object-contain"
-        />
-        <p className="text-xl font-semibold tracking-tight text-white">TECHHEIST</p>
-      </Link>
 
       {/* Desktop Navigation Links */}
       <div className="hidden md:flex items-center text-foreground/70 md:gap-5 lg:gap-10">

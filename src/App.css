@@ -39,9 +39,13 @@
 }
 
 /* Base styles */
+/* Remove overly aggressive universal border/outline that caused layout + clickable glitches */
 * {
-  border: var(--border);
-  outline: var(--ring) 50%;
+  box-sizing: border-box;
+}
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 body {
   background: var(--background);
