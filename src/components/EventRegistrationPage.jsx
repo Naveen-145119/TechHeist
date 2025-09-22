@@ -1,136 +1,125 @@
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Input } from './ui/input'
-import { Label } from './ui/label'
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { databases, databaseId, eventsTableId, registrationsTableId } from '../appwriteConfig'; // Import Appwrite config
+import { ID } from 'appwrite'; // Import ID for creating unique document IDs
 
 const EventRegistrationPage = ({ user }) => {
-  const { eventId } = useParams()
-  const navigate = useNavigate()
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const { eventId } = useParams();
+  const navigate = useNavigate();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   
   const [formData, setFormData] = useState({
     teamName: '',
     teammates: []
-  })
+  });
 
   useEffect(() => {
     if (!user) {
-      navigate('/login')
-      return
+      navigate('/login');
+      return;
     }
 
-    // Fetch event details
+    // Fetch event details from Appwrite
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setEvent(data.event)
-          
-          // Initialize teammates array based on team size
-          const maxTeammates = data.event.maxTeamSize - 1 // Excluding the user
+        const response = await databases.getDocument(databaseId, eventsTableId, eventId);
+        setEvent(response);
+        
+        // Initialize teammates array based on team size
+        const maxTeammates = response.maxTeamSize - 1; // Excluding the user
+        if (maxTeammates > 0) {
           setFormData({
             teamName: '',
             teammates: Array(maxTeammates).fill({ name: '', email: '', phoneNumber: '' })
-          })
+          });
         }
       } catch (error) {
-        console.error('Failed to fetch event:', error)
-        // Mock data for development
-        setEvent({
-          _id: eventId,
-          eventName: 'Hackathon Supreme',
-          maxTeamSize: 4,
-          minTeamSize: 2
-        })
-        setFormData({
-          teamName: '',
-          teammates: Array(3).fill({ name: '', email: '', phoneNumber: '' })
-        })
+        console.error('Failed to fetch event:', error);
+        setError('Failed to load event details. Please try again later.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchEvent()
-  }, [eventId, user, navigate])
+    fetchEvent();
+  }, [eventId, user, navigate]);
 
   const handleTeammateChange = (index, field, value) => {
-    const newTeammates = [...formData.teammates]
-    newTeammates[index] = { ...newTeammates[index], [field]: value }
-    setFormData({ ...formData, teammates: newTeammates })
-  }
+    const newTeammates = [...formData.teammates];
+    newTeammates[index] = { ...newTeammates[index], [field]: value };
+    setFormData({ ...formData, teammates: newTeammates });
+  };
 
   const addTeammate = () => {
-    if (formData.teammates.length < event.maxTeamSize - 1) {
+    if (event && formData.teammates.length < event.maxTeamSize - 1) {
       setFormData({
         ...formData,
         teammates: [...formData.teammates, { name: '', email: '', phoneNumber: '' }]
-      })
+      });
     }
-  }
+  };
 
   const removeTeammate = (index) => {
-    const newTeammates = formData.teammates.filter((_, i) => i !== index)
-    setFormData({ ...formData, teammates: newTeammates })
-  }
+    const newTeammates = formData.teammates.filter((_, i) => i !== index);
+    setFormData({ ...formData, teammates: newTeammates });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError('')
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
 
-    // Filter out empty teammates
     const validTeammates = formData.teammates.filter(
       teammate => teammate.name.trim() && teammate.email.trim() && teammate.phoneNumber.trim()
-    )
+    );
 
-    const totalTeamSize = validTeammates.length + 1 // +1 for the user
+    const totalTeamSize = validTeammates.length + 1; // +1 for the user
 
     if (totalTeamSize < event.minTeamSize) {
-      setError(`Team must have at least ${event.minTeamSize} members`)
-      setSubmitting(false)
-      return
+      setError(`Team must have at least ${event.minTeamSize} members`);
+      setSubmitting(false);
+      return;
+    }
+    if (totalTeamSize > event.maxTeamSize) {
+        setError(`Team cannot have more than ${event.maxTeamSize} members`);
+        setSubmitting(false);
+        return;
     }
 
     try {
-      const token = localStorage.getItem('techheist_token')
-      const response = await fetch('http://localhost:5000/api/registrations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          eventId,
+      await databases.createDocument(
+        databaseId,
+        registrationsTableId, // Ensure this is in your appwriteConfig.js
+        ID.unique(),
+        {
+          eventId: eventId,
           teamName: formData.teamName,
-          teammates: validTeammates
-        })
-      })
+          teammates: JSON.stringify(validTeammates), // Store teammates as JSON
+          userId: user.$id,
+        }
+      );
 
-      const data = await response.json()
-
-      if (response.ok) {
-        setSuccess(true)
-        setTimeout(() => {
-          navigate(`/event/${eventId}`)
-        }, 2000)
-      } else {
-        setError(data.message || 'Registration failed')
-      }
+      setSuccess(true);
+      setTimeout(() => {
+        navigate(`/event/${eventId}`);
+      }, 2000);
+      
     } catch (error) {
-      setError('Network error. Please try again.')
+      console.error('Registration failed:', error);
+      setError(error.message || 'Registration failed. Please try again.');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -140,7 +129,7 @@ const EventRegistrationPage = ({ user }) => {
           <p className="text-foreground text-lg">Loading Registration Form...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (success) {
@@ -150,29 +139,27 @@ const EventRegistrationPage = ({ user }) => {
           <div className="dali-mask-icon w-16 h-16 mx-auto mb-4"></div>
           <h2 className="text-3xl font-bold text-gradient mb-4">Registration Successful!</h2>
           <p className="text-muted-foreground mb-6">
-            You have successfully registered for {event.eventName}
+            You have successfully registered for {event?.eventName}
           </p>
           <Link to={`/event/${eventId}`}>
             <Button className="btn-primary">Back to Event</Button>
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen py-20 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* Back Button */}
         <Link to={`/event/${eventId}`} className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Event</span>
         </Link>
 
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gradient mb-2">Event Registration</h1>
-          <p className="text-muted-foreground">{event.eventName}</p>
+          <p className="text-muted-foreground">{event?.eventName}</p>
         </div>
 
         <Card className="event-card bg-card border-border">
@@ -190,30 +177,20 @@ const EventRegistrationPage = ({ user }) => {
                 </div>
               )}
 
-              {/* Team Leader (User) */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-foreground">Team Leader</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
                   <div>
                     <Label>Full Name</Label>
-                    <Input value={user.fullName} disabled />
+                    <Input value={user.name} disabled />
                   </div>
                   <div>
                     <Label>Email</Label>
                     <Input value={user.email} disabled />
                   </div>
-                  <div>
-                    <Label>Phone Number</Label>
-                    <Input value={user.phoneNumber} disabled />
-                  </div>
-                  <div>
-                    <Label>College</Label>
-                    <Input value={user.collegeName} disabled />
-                  </div>
                 </div>
               </div>
 
-              {/* Team Name */}
               <div className="space-y-2">
                 <Label htmlFor="teamName">Team Name</Label>
                 <Input
@@ -226,11 +203,10 @@ const EventRegistrationPage = ({ user }) => {
                 />
               </div>
 
-              {/* Teammates */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-foreground">Team Members</h3>
-                  {formData.teammates.length < event.maxTeamSize - 1 && (
+                  {event && formData.teammates.length < event.maxTeamSize - 1 && (
                     <Button type="button" variant="outline" size="sm" onClick={addTeammate}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Member
@@ -239,14 +215,14 @@ const EventRegistrationPage = ({ user }) => {
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Team size: {event.minTeamSize}-{event.maxTeamSize} members (including you)
+                  Team size: {event?.minTeamSize}-{event?.maxTeamSize} members (including you)
                 </p>
 
                 {formData.teammates.map((teammate, index) => (
                   <div key={index} className="p-4 border border-border rounded-lg space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-foreground">Member {index + 2}</h4>
-                      {formData.teammates.length > event.minTeamSize - 1 && (
+                      {event && formData.teammates.length >= event.minTeamSize - 1 && (
                         <Button 
                           type="button" 
                           variant="ghost" 
@@ -303,8 +279,7 @@ const EventRegistrationPage = ({ user }) => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EventRegistrationPage
-
+export default EventRegistrationPage;
