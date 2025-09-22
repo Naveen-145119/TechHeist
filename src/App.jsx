@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import './App.css';
-import { account } from './appwriteConfig'; // Import the Appwrite account object
+import { account } from './appwriteConfig';
+import { Toaster } from 'react-hot-toast'; // Import the Toaster
 
 // Components
 import Navbar from './components/Navbar';
@@ -16,15 +17,12 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // This hook now correctly uses Appwrite to check for an active session
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const currentUser = await account.get();
         setUser(currentUser);
       } catch (error) {
-        // If no session is found, Appwrite throws an error.
-        // We can safely ignore it and assume the user is not logged in.
         setUser(null);
       } finally {
         setLoading(false);
@@ -34,12 +32,10 @@ function App() {
     checkAuth();
   }, []);
 
-  // This function is passed to the LoginPage and RegisterPage
   const login = (userData) => {
     setUser(userData);
   };
 
-  // The logout function now correctly uses the Appwrite SDK
   const logout = async () => {
     try {
       await account.deleteSession('current');
@@ -62,6 +58,8 @@ function App() {
 
   return (
     <Router>
+      {/* Add the Toaster component here */}
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="min-h-screen bg-background text-foreground">
         <Navbar user={user} logout={logout} />
         
