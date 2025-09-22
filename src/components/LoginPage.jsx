@@ -8,11 +8,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { account } from '../appwriteConfig'; // Import Appwrite account
-import toast from 'react-hot-toast'; // Using react-hot-toast for notifications
+import { account } from '../appwriteConfig';
+import toast from 'react-hot-toast';
 import techheistLogo from '../assets/techheist-logo.png';
 
-// Validation schema using yup
 const schema = yup.object({
   email: yup
     .string()
@@ -37,17 +36,15 @@ const LoginPage = ({ login }) => {
     resolver: yupResolver(schema),
   });
 
-  // Updated onSubmit to use Appwrite
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      // Use Appwrite SDK for login
       await account.createEmailPasswordSession(data.email, data.password);
       const userProfile = await account.get();
       
-      login(userProfile); // Update the global user state
+      login(userProfile);
       toast.success("Logged in successfully!");
-      navigate('/'); // Redirect on successful login
+      navigate('/');
 
     } catch (error) {
       console.error('Login error:', error);
@@ -65,7 +62,6 @@ const LoginPage = ({ login }) => {
         transition={{ duration: 0.6 }}
         className="max-w-md w-full space-y-8"
       >
-        {/* Header */}
         <div className="text-center">
           <img 
             src={techheistLogo} 
@@ -90,19 +86,15 @@ const LoginPage = ({ login }) => {
           </motion.p>
         </div>
 
-        {/* Form */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="event-card bg-card border-border p-8 rounded-xl" // Reusing existing card style
+          className="event-card bg-card border-border p-8 rounded-xl"
         >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email Address
-              </Label>
+              <Label htmlFor="email">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -118,11 +110,8 @@ const LoginPage = ({ login }) => {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -137,11 +126,7 @@ const LoginPage = ({ login }) => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {errors.password && (
@@ -149,11 +134,10 @@ const LoginPage = ({ login }) => {
               )}
             </div>
             
-            {/* Submit Button */}
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full btn-primary h-12 text-base font-medium" // Reusing existing button style
+              className="w-full btn-primary h-12 text-base font-medium"
             >
               {isLoading ? (
                 <>
@@ -166,7 +150,6 @@ const LoginPage = ({ login }) => {
             </Button>
           </form>
 
-          {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
