@@ -1,61 +1,31 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { Badge } from './ui/badge'
-import { Calendar, Users, MapPin, Trophy, MessageCircle, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Calendar, Users, MapPin, Trophy, MessageCircle, ArrowLeft } from 'lucide-react';
+import { databases, databaseId, eventsTableId } from '../appwriteConfig'; // Import Appwrite config
 
 const EventDetailPage = ({ user }) => {
-  const { eventId } = useParams()
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { eventId } = useParams();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch event details
+    // Fetch event details from Appwrite
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/${eventId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setEvent(data.event)
-        }
+        const data = await databases.getDocument(databaseId, eventsTableId, eventId);
+        setEvent(data);
       } catch (error) {
-        console.error('Failed to fetch event:', error)
-        // Mock data for development
-        setEvent({
-          _id: eventId,
-          eventName: 'Hackathon Supreme',
-          description: 'The ultimate 48-hour coding challenge where teams compete to build innovative solutions',
-          category: 'IT',
-          date: '2024-03-15',
-          venue: 'Main Auditorium',
-          maxTeamSize: 4,
-          minTeamSize: 2,
-          prizeDetails: '₹25,000 for winners, ₹15,000 for runners-up',
-          rules: `
-            <h3>Rules and Regulations:</h3>
-            <ul>
-              <li>Teams must consist of 2-4 members</li>
-              <li>All team members must be registered students</li>
-              <li>Original code only - no plagiarism allowed</li>
-              <li>48-hour time limit strictly enforced</li>
-              <li>Final submission must include source code and demo</li>
-            </ul>
-          `,
-          whatsappLink: 'https://wa.me/1234567890',
-          contactInfo: {
-            name: 'Event Coordinator',
-            phone: '+91 98765 43210',
-            email: 'hackathon@techheist.com'
-          }
-        })
+        console.error('Failed to fetch event:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchEvent()
-  }, [eventId])
+    fetchEvent();
+  }, [eventId]);
 
   if (loading) {
     return (
@@ -65,7 +35,7 @@ const EventDetailPage = ({ user }) => {
           <p className="text-foreground text-lg">Loading Event Details...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!event) {
@@ -78,19 +48,17 @@ const EventDetailPage = ({ user }) => {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen py-20 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
         <Link to="/events" className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Events</span>
         </Link>
 
-        {/* Event Header */}
         <div className="text-center mb-12">
           <Badge 
             variant={event.category === 'IT' ? 'default' : 'secondary'}
@@ -99,14 +67,13 @@ const EventDetailPage = ({ user }) => {
             {event.category}
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient">
-            {event.eventName}
+            {event.name}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             {event.description}
           </p>
         </div>
 
-        {/* Event Details */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2">
             <Card className="event-card bg-card border-border">
@@ -160,7 +127,6 @@ const EventDetailPage = ({ user }) => {
                   </div>
                 </div>
 
-                {/* Rules */}
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-3">Rules & Regulations</h3>
                   <div 
@@ -172,7 +138,6 @@ const EventDetailPage = ({ user }) => {
             </Card>
           </div>
 
-          {/* Registration Card */}
           <div>
             <Card className="event-card bg-card border-border sticky top-24">
               <CardHeader>
@@ -214,8 +179,8 @@ const EventDetailPage = ({ user }) => {
                       <span>WhatsApp Support</span>
                     </a>
                     <div className="text-sm text-muted-foreground">
-                      <p>📧 {event.contactInfo.email}</p>
-                      <p>📞 {event.contactInfo.phone}</p>
+                      <p>📧 {event.contactEmail}</p>
+                      <p>📞 {event.contactPhone}</p>
                     </div>
                   </div>
                 </div>
@@ -225,8 +190,7 @@ const EventDetailPage = ({ user }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default EventDetailPage
-
+export default EventDetailPage;
