@@ -11,142 +11,144 @@ const Navbar = ({ user, logout }) => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Events', path: '/events' },
+    { name: 'Contact', path: '#' },
   ]
 
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src={techheistLogo} 
-              alt="TECHHEIST" 
-              className="h-10 w-auto techheist-logo"
-            />
-          </Link>
+    <nav 
+      id="navbar" 
+      className="animate fixed z-50 flex max-w-full items-center justify-between px-4 duration-500 inset-x-0 top-2 mx-auto h-16 w-11/12 rounded-full border border-slate-700 bg-slate-900/50 backdrop-blur-sm backdrop-brightness-150 md:top-4 md:max-w-3xl lg:max-w-5xl lg:px-6 xl:max-w-7xl"
+      style={{
+        backgroundImage: 'radial-gradient(rgba(0, 0, 0, 0) 1px, rgba(30, 41, 59, 0.5) 1px)',
+        backgroundSize: '4px 4px'
+      }}
+    >
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-2">
+        <img 
+          src={techheistLogo} 
+          alt="TECHHEIST Logo" 
+          className="w-7 h-7 object-contain"
+        />
+        <p className="text-xl font-semibold tracking-tight text-white">TECHHEIST</p>
+      </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+      {/* Desktop Navigation Links */}
+      <div className="hidden md:flex items-center text-foreground/70 md:gap-5 lg:gap-10">
+        {navLinks.map((link) => (
+          <Link
+            key={link.name}
+            to={link.path}
+            className={`animate hover:text-white transition-colors duration-300 ${
+              isActive(link.path) 
+                ? 'text-white font-medium' 
+                : 'text-white/70'
+            }`}
+          >
+            {link.name}
+          </Link>
+        ))}
+      </div>
+
+      {/* Desktop User Actions */}
+      <div className="hidden md:flex items-center gap-4 text-foreground/70">
+        {user ? (
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm">
+              <User className="w-4 h-4 text-white/70" />
+              <span className="text-white/70">{user.fullName}</span>
+            </div>
+            <button
+              onClick={logout}
+              className="animate rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-medium hover:border-slate-500 hover:bg-slate-700 text-white/70 hover:text-white transition-all duration-300 flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link to="/login">
+              <button className="animate hover:text-white transition-colors duration-300 text-white/70">
+                Login
+              </button>
+            </Link>
+            <Link to="/register">
+              <button className="animate rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-medium hover:border-slate-500 hover:bg-slate-700 text-white/70 hover:text-white transition-all duration-300">
+                Register
+              </button>
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile menu button */}
+      <div className="md:hidden">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="text-white/70 hover:text-white hover:bg-slate-800/50"
+        >
+          {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </Button>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 mt-2 mx-4 bg-slate-900/90 backdrop-blur-sm rounded-2xl border border-slate-700 p-4 shadow-xl">
+          <div className="flex flex-col space-y-4">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive(link.path) 
-                    ? 'text-primary border-b-2 border-primary' 
-                    : 'text-muted-foreground'
+                className={`text-sm font-medium transition-colors hover:text-white ${
+                  isActive(link.path) ? 'text-white' : 'text-white/70'
                 }`}
+                onClick={() => setIsMenuOpen(false)}
               >
                 {link.name}
               </Link>
             ))}
-          </div>
-
-          {/* User Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-sm">
-                  <User className="w-4 h-4" />
-                  <span className="text-foreground">{user.fullName}</span>
+            
+            <div className="pt-4 border-t border-slate-700">
+              {user ? (
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <User className="w-4 h-4 text-white/70" />
+                    <span className="text-white/70">{user.fullName}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout()
+                      setIsMenuOpen(false)
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-medium hover:border-slate-500 hover:bg-slate-700 text-white/70 hover:text-white transition-all duration-300"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={logout}
-                  className="flex items-center space-x-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/login">
-                  <Button variant="outline" size="sm">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register">
-                  <Button className="btn-primary" size="sm">
-                    Register
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive(link.path) ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              
-              <div className="pt-4 border-t border-border">
-                {user ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <User className="w-4 h-4" />
-                      <span className="text-foreground">{user.fullName}</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        logout()
-                        setIsMenuOpen(false)
-                      }}
-                      className="w-full flex items-center justify-center space-x-2"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Logout</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Login
-                      </Button>
-                    </Link>
-                    <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="btn-primary w-full" size="sm">
-                        Register
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full py-2 text-center text-white/70 hover:text-white transition-colors duration-300">
+                      Login
+                    </button>
+                  </Link>
+                  <Link to="/register" onClick={() => setIsMenuOpen(false)}>
+                    <button className="w-full rounded-full border border-slate-600 bg-slate-800 px-4 py-2 font-medium hover:border-slate-500 hover:bg-slate-700 text-white/70 hover:text-white transition-all duration-300">
+                      Register
+                    </button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   )
 }

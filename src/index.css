@@ -3,3 +3,37 @@
   --main-black: #000000;
   --main-white: #FFFFFF;
 }
+
+/* Custom animation classes */
+.animate {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Navbar backdrop blur enhancement */
+#navbar {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Smooth hover transitions */
+.animate:hover {
+  transform: translateY(-1px);
+}
+
+/* Custom scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
