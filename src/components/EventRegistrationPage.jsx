@@ -1,285 +1,223 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { databases, databaseId, eventsTableId, registrationsTableId } from '../appwriteConfig'; // Import Appwrite config
-import { ID } from 'appwrite'; // Import ID for creating unique document IDs
+import { account } from '../appwriteConfig';
+import toast from 'react-hot-toast';
+import techheistLogo from '../assets/techheist-logo.png';
+import { ID } from 'appwrite';
 
-const EventRegistrationPage = ({ user }) => {
-  const { eventId } = useParams();
+const schema = yup.object({
+  fullName: yup
+    .string()
+    .min(3, 'Full name must be at least 3 characters')
+    .required('Full name is required'),
+  email: yup
+    .string()
+    .email('Please enter a valid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Please confirm your password'),
+});
+
+const RegisterPage = ({ login }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    teamName: '',
-    teammates: []
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
   });
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    // Fetch event details from Appwrite
-    const fetchEvent = async () => {
-      try {
-        const response = await databases.getDocument(databaseId, eventsTableId, eventId);
-        setEvent(response);
-        
-        // Initialize teammates array based on team size
-        const maxTeammates = response.maxTeamSize - 1; // Excluding the user
-        if (maxTeammates > 0) {
-          setFormData({
-            teamName: '',
-            teammates: Array(maxTeammates).fill({ name: '', email: '', phoneNumber: '' })
-          });
-        }
-      } catch (error) {
-        console.error('Failed to fetch event:', error);
-        setError('Failed to load event details. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvent();
-  }, [eventId, user, navigate]);
-
-  const handleTeammateChange = (index, field, value) => {
-    const newTeammates = [...formData.teammates];
-    newTeammates[index] = { ...newTeammates[index], [field]: value };
-    setFormData({ ...formData, teammates: newTeammates });
-  };
-
-  const addTeammate = () => {
-    if (event && formData.teammates.length < event.maxTeamSize - 1) {
-      setFormData({
-        ...formData,
-        teammates: [...formData.teammates, { name: '', email: '', phoneNumber: '' }]
-      });
-    }
-  };
-
-  const removeTeammate = (index) => {
-    const newTeammates = formData.teammates.filter((_, i) => i !== index);
-    setFormData({ ...formData, teammates: newTeammates });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError('');
-
-    const validTeammates = formData.teammates.filter(
-      teammate => teammate.name.trim() && teammate.email.trim() && teammate.phoneNumber.trim()
-    );
-
-    const totalTeamSize = validTeammates.length + 1; // +1 for the user
-
-    if (totalTeamSize < event.minTeamSize) {
-      setError(`Team must have at least ${event.minTeamSize} members`);
-      setSubmitting(false);
-      return;
-    }
-    if (totalTeamSize > event.maxTeamSize) {
-        setError(`Team cannot have more than ${event.maxTeamSize} members`);
-        setSubmitting(false);
-        return;
-    }
-
+  const onSubmit = async (data) => {
+    setIsLoading(true);
     try {
-      await databases.createDocument(
-        databaseId,
-        registrationsTableId, // Ensure this is in your appwriteConfig.js
-        ID.unique(),
-        {
-          eventId: eventId,
-          teamName: formData.teamName,
-          teammates: JSON.stringify(validTeammates), // Store teammates as JSON
-          userId: user.$id,
-        }
-      );
-
-      setSuccess(true);
-      setTimeout(() => {
-        navigate(`/event/${eventId}`);
-      }, 2000);
+      await account.create(ID.unique(), data.email, data.password, data.fullName);
       
+      await account.createEmailPasswordSession(data.email, data.password);
+      const userProfile = await account.get();
+      
+      login(userProfile);
+      toast.success("Account created successfully!");
+      navigate('/');
+
     } catch (error) {
-      console.error('Registration failed:', error);
-      setError(error.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', error);
+      toast.error(error.message || "Registration failed. Please try again.");
     } finally {
-      setSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="dali-mask-icon w-16 h-16 mx-auto mb-4 animate-pulse"></div>
-          <p className="text-foreground text-lg">Loading Registration Form...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="dali-mask-icon w-16 h-16 mx-auto mb-4"></div>
-          <h2 className="text-3xl font-bold text-gradient mb-4">Registration Successful!</h2>
-          <p className="text-muted-foreground mb-6">
-            You have successfully registered for {event?.eventName}
-          </p>
-          <Link to={`/event/${eventId}`}>
-            <Button className="btn-primary">Back to Event</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen py-20 px-4">
-      <div className="max-w-2xl mx-auto">
-        <Link to={`/event/${eventId}`} className="inline-flex items-center space-x-2 text-muted-foreground hover:text-foreground mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Event</span>
-        </Link>
-
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gradient mb-2">Event Registration</h1>
-          <p className="text-muted-foreground">{event?.eventName}</p>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-md w-full space-y-8"
+      >
+        <div className="text-center">
+           <img 
+            src={techheistLogo} 
+            alt="TECHHEIST" 
+            className="h-16 w-auto mx-auto mb-4 techheist-logo"
+          />
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-3xl font-bold text-gradient"
+          >
+            Join TECHHEIST
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-2 text-muted-foreground"
+          >
+            Create your account to participate
+          </motion.p>
         </div>
 
-        <Card className="event-card bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">Registration Details</CardTitle>
-            <CardDescription>
-              Fill in your team details to register for this event
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-2 rounded">
-                  {error}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-foreground">Team Leader</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg">
-                  <div>
-                    <Label>Full Name</Label>
-                    <Input value={user.name} disabled />
-                  </div>
-                  <div>
-                    <Label>Email</Label>
-                    <Input value={user.email} disabled />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="teamName">Team Name</Label>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="event-card bg-card border-border p-8 rounded-xl"
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  id="teamName"
+                  id="fullName"
                   type="text"
-                  placeholder="Enter your team name"
-                  value={formData.teamName}
-                  onChange={(e) => setFormData({...formData, teamName: e.target.value})}
-                  required
+                  placeholder="Enter your full name"
+                  className="pl-10 h-12"
+                  {...register('fullName')}
                 />
               </div>
+              {errors.fullName && (
+                <p className="text-sm text-destructive">{errors.fullName.message}</p>
+              )}
+            </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Team Members</h3>
-                  {event && formData.teammates.length < event.maxTeamSize - 1 && (
-                    <Button type="button" variant="outline" size="sm" onClick={addTeammate}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Member
-                    </Button>
-                  )}
-                </div>
-                
-                <p className="text-sm text-muted-foreground">
-                  Team size: {event?.minTeamSize}-{event?.maxTeamSize} members (including you)
-                </p>
-
-                {formData.teammates.map((teammate, index) => (
-                  <div key={index} className="p-4 border border-border rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-foreground">Member {index + 2}</h4>
-                      {event && formData.teammates.length >= event.minTeamSize - 1 && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => removeTeammate(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label>Full Name</Label>
-                        <Input
-                          type="text"
-                          placeholder="Member name"
-                          value={teammate.name}
-                          onChange={(e) => handleTeammateChange(index, 'name', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label>Email</Label>
-                        <Input
-                          type="email"
-                          placeholder="member@example.com"
-                          value={teammate.email}
-                          onChange={(e) => handleTeammateChange(index, 'email', e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label>Phone Number</Label>
-                        <Input
-                          type="tel"
-                          placeholder="+91 98765 43210"
-                          value={teammate.phoneNumber}
-                          onChange={(e) => handleTeammateChange(index, 'phoneNumber', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className="pl-10 h-12"
+                  {...register('email')}
+                />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
 
-              <Button 
-                type="submit" 
-                className="w-full btn-primary text-lg py-3" 
-                disabled={submitting}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  className="pl-10 pr-10 h-12"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  className="pl-10 pr-10 h-12"
+                  {...register('confirmPassword')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full btn-primary h-12 text-base font-medium"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'REGISTER'
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-primary hover:text-primary/80 transition-colors font-medium"
               >
-                {submitting ? 'Registering...' : 'REGISTER FOR EVENT'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+                Login here
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
 
-export default EventRegistrationPage;
+export default RegisterPage;
